@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        /* Estilos para el contenedor del PDF y el canvas */
+        .pdf-container {
+            width: 100%;
+            height: 100vh;
+            overflow: auto;
+            max-width: 770px; 
+            max-height: 1920px; 
+        }
+        .pdf-page {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        h1{
+            display:flex;
+            justify-content: center;
+            text-align: center;
+        }
+        .content{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column; /* Cambiar a columna para pantallas pequeñas */
+            gap: 10px;
+            max-width: 90vw;
+            margin:10
+        }
+
+        @media (min-width: 600px) {
+            .content {
+                flex-direction: row; /* Cambiar a fila para pantallas más grandes */
+            }
+        }
+        .content a {
+            word-break: break-all; /* Permitir que el enlace se divida en varias líneas */
+        }
+    </style>
+</head>
+<body>
+    <h1>This is the PDF</h1>
+    <div class="content">    
+        <p>it's hosted in </p>
+        <a href="https://akrotonx.pixxio.media/plk/Utilisation_papier.book.pdf">https://akrotonx.pixxio.media/plk/Utilisation_papier.book.pdf</a>
+    </div>
+
+    <!-- Contenedor para el visor de PDF -->
+    <div class="pdf-container" id="pdf-container">
+        <!-- Las páginas del PDF se agregarán aquí dinámicamente -->
+    </div>
+    <!-- Cargar la librería PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script>
+        // URL del PDF a cargar
+        const url = 'https://akrotonx.pixxio.media/plk/Utilisation_papier.book.pdf';
+
+        // Inicializar la librería PDF.js
+        const pdfjsLib = window['pdfjs-dist/build/pdf'];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+
+        // Cargar el documento PDF
+        const loadingTask = pdfjsLib.getDocument(url);
+        loadingTask.promise.then(pdf => {
+            // Obtener el número total de páginas
+            const numPages = pdf.numPages;
+
+            // Función para renderizar una página
+            function renderPage(pageNumber) {
+                pdf.getPage(pageNumber).then(page => {
+                    const scale = 1.5; // Escala para el renderizado
+                    const viewport = page.getViewport({ scale });
+
+                    // Crear un canvas para cada página
+                    const canvas = document.createElement('canvas');
+                    canvas.className = 'pdf-page';
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    // Renderizar la página en el canvas
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    page.render(renderContext);
+
+                    // Agregar el canvas al contenedor
+                    document.getElementById('pdf-container').appendChild(canvas);
+                });
+            }
+
+            // Renderizar todas las páginas
+            for (let pageNumber = 1; pageNumber <= numPages; pageNumber++) {
+                renderPage(pageNumber);
+            }
+        });
+    </script>
+</body>
+</html>
